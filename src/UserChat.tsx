@@ -59,11 +59,6 @@ function App() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // メッセージを追加する関数
-  const addMessage = (message: Message) => {
-    setMessages((prevMessages) => [...prevMessages, message]);
-  };
-
   useEffect(() => {
     if (sessionId) {
       // sessionIdが有効な場合のみクエリを実行
