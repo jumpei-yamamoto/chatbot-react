@@ -18,6 +18,7 @@ function App() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [nextQuestion, setNextQuestion] = useState<string>("");
   const [chatWithSupport, setChatWithSupport] = useState(false);
+  const [chatWithAI, setChatWithAI] = useState(false);
   const [sessionId, setSessionId] = useState("");
 
   // チャットウィンドウを開く/閉じる関数
@@ -48,8 +49,7 @@ function App() {
       "こんにちは！相談内容を選択してください。",
       "1. どんな会社？",
       "2. 仕事を依頼したい",
-      "3. サービス内容を教えて",
-      "4. その他",
+      "3. その他",
     ];
     sendMessage(messageText, "bot");
   };
@@ -98,11 +98,38 @@ function App() {
       // サポート担当者とのチャット中の場合
       return;
     }
+
+    if (chatWithAI) {
+      const dataToSend = {
+        query: input,
+      };
+      const callMainPyProcess = async () => {
+        try {
+          const response = await fetch("http://127.0.0.1:5000/process", {
+            mode: "cors",
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(dataToSend),
+          });
+          const responseData = await response.json();
+          console.log(responseData);
+          sendMessage(responseData.result, "bot");
+        } catch (error) {
+          console.error("Error calling main.py:", error);
+        }
+      };
+      callMainPyProcess();
+      return;
+    }
+
     if (!nextQuestion) {
       switch (inputNumber) {
         case 1:
           // 会社についての情報
           sendMessage("どのような情報をご希望でしょうか？", "bot");
+          setChatWithAI(true); // AI Agentとのチャットを開始
           break;
         case 2:
           // 仕事を依頼したい
@@ -113,10 +140,6 @@ function App() {
           setNextQuestion("serviceType");
           break;
         case 3:
-          // サービス内容について
-          sendMessage("どのサービス内容について詳しく知りたいですか？", "bot");
-          break;
-        case 4:
           // その他
           sendMessage("担当者にお繋ぎしますので少々お待ち下さい。", "bot");
           setChatWithSupport(true); // 担当者とのチャットを開始
